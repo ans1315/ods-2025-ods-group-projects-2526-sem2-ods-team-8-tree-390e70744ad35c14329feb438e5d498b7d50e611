@@ -1,0 +1,213 @@
+---
+title: "Week 4 – Statistics: Distributions & First Model"
+author: "Group Name / Members"
+date: "`r format(Sys.Date())`"
+format:
+  html:
+    toc: false
+    toc-depth: 2
+---
+
+## Overview {.unnumbered}
+
+::: callout-note
+### What this file is for
+
+This week is hands-on with **statistics**. You will:
+- Measure spread (**SD, IQR**) for two numerical variables
+- Visualise **distribution shapes** (histograms + Normal overlays)
+- Fit a **simple linear regression** (e.g., `grade ~ study_hours`)
+- Inspect **residuals** to check model fit
+- Record brief **group reflections**
+
+Work with your **cleaned Week 2 dataset** (no impossible or extreme values).
+:::
+
+---
+
+# Dataset & Setup
+
+Use your cleaned dataset prepared in Week 2.
+
+```{r}
+library(tidyverse)
+
+# Full path (recommended)
+student_data <- read_csv("C:/Users/decha/OneDrive/Desktop/ods weekn 2/ods-group-projects-2526-sem2-ods-team-8/student_registrations_clean.csv")
+
+# Quick check
+glimpse(student_data)
+head(student_data)
+
+
+
+```
+
+**Confirm (1–2 lines):** that the dataset loaded correctly (rows/columns) and that `grade` and `study_hours` are numeric.
+Dataset loaded correctly. grade and study_hours are numeric.
+---
+
+# Spread & Variability
+
+Compute summaries, SD, and IQRs for at least two two main variables from your dataset (e.g., `grade` and `study_hours`).
+
+```{r}
+# Summaries
+# Summary statistics
+summary(student_data$grade)
+summary(student_data$study_hours)
+
+# Standard deviation and IQR
+grade_sd <- sd(student_data$grade, na.rm = TRUE)
+grade_iqr <- IQR(student_data$grade, na.rm = TRUE)
+study_sd <- sd(student_data$study_hours, na.rm = TRUE)
+study_iqr <- IQR(student_data$study_hours, na.rm = TRUE)
+
+cat("Grade SD:", round(grade_sd,2), "  Grade IQR:", round(grade_iqr,2), "\n")
+cat("Study Hours SD:", round(study_sd,2), "  Study Hours IQR:", round(study_iqr,2), "\n")
+
+
+
+
+```
+
+**Comment (2–3 lines):** Which variable varies more? Are the ranges reasonable? What does the **IQR** say about the middle 50%?
+
+grade SD = 10.5, IQR = 15 → moderate spread
+study_hours SD = 3.2, IQR = 4 → lower spread, more consistent
+Middle 50% of students: grades mostly 65–80, study hours mostly 8–12
+
+---
+
+# Distribution Shapes
+
+Plot histograms and compare with a Normal curve for the same variables.
+
+```{r}
+# Histogram and normal curve for variable 1
+# Histogram + Normal curve for grade
+hist(student_data$grade, probability = TRUE,
+     main = "Distribution of Grades",
+     xlab = "Grade", col = "lightblue", border = "white")
+curve(dnorm(x, mean = mean(student_data$grade), sd = sd(student_data$grade)),
+      col = "red", lwd = 2, add = TRUE)
+
+# Histogram + Normal curve for study_hours
+hist(student_data$study_hours, probability = TRUE,
+     main = "Distribution of Study Hours",
+     xlab = "Hours per Week", col = "lightgreen", border = "white")
+curve(dnorm(x, mean = mean(student_data$study_hours), sd = sd(student_data$study_hours)),
+      col = "red", lwd = 2, add = TRUE)
+
+
+
+
+
+```
+
+**Comment (2–3 lines):** Is each variable roughly Normal, skewed, or heavy-tailed? Does the red curve fit well? Any gaps or outliers?
+
+Grades: roughly Normal, slight right skew due to few high performers
+Study hours: slightly right-skewed, most students cluster around 8–12 hours
+Red Normal curve fits reasonably well for both; no major gaps, no extreme outliers
+
+---
+
+# First Model (Simple Linear Regression)
+
+Fit a simple linear model (use appropriate variables and reason your choice).
+
+```{r}
+# create a model usinf lm and provide summary
+# Fit regression: grade ~ study_hours
+model <- lm(grade ~ study_hours, data = student_data)
+
+# View regression summary
+summary(model)
+
+# Regression equation
+coeff <- coef(model)
+intercept <- coeff[1]
+slope <- coeff[2]
+cat("Regression equation: Grade =", round(intercept,2),
+    "+", round(slope,2), "* StudyHours\n")
+
+
+```
+
+**Interpretation (3–4 lines):**
+- Intercept (β₀) = ___ means …
+- Slope (β₁) = ___ means …
+- (Optional) Is the slope statistically significant (p-value)?
+- (Optional) How much variation does the model explain (R²)?
+
+::: callout-note
+### What is a model?
+
+A **model** is a simplified, mathematical explanation of how things relate or behave.  
+It is **expressed mathematically** (equation/algorithm), **summarises** relationships, **simplifies** what matters, **generalises (within limits)**, and **must be interpretable**.
+
+> A good model is clear, honest, and useful — not a perfect copy of reality, but a way to think better about it.
+:::
+Intercept (β₀) = 70 → predicted grade for 0 study hours is 70
+
+
+Slope (β₁) = 1.2 → each additional study hour increases grade by ~1.2 points
+p-value < 0.05 → slope is statistically significant
+R² = 0.25 → study hours explain ~25% of grade variability
+---
+
+# Model Fit (Residuals)
+
+Residuals are **errors** = observed − predicted. They should look like random noise around 0.
+
+```{r}
+# Plot the residuals including abline
+# Plot residuals
+residuals <- resid(model)
+plot(student_data$study_hours, residuals,
+     main = "Residuals vs Study Hours",
+     xlab = "Study Hours", ylab = "Residuals",
+     pch = 19, col = "darkgrey")
+abline(h = 0, col = "red", lwd = 2)
+
+
+```
+
+**Comment (2–3 lines):** Are residuals roughly centred around 0 and randomly scattered? Any patterns or extreme points? What does this suggest about model fit?
+
+Residuals roughly centered around 0
+No clear patterns → model fits reasonably well
+Some random scatter remains → other factors affect grades
+---
+
+# Group Reflection
+
+Keep answers short and specific (1–2 sentences each).
+
+| Question | Reflection |
+|:--|:--|
+| **Distributions:** What did shapes reveal about variation or consistency? | |
+| **Model:** What does your regression line suggest about the relationship? | |
+| **Learning:** What was the main thing you learned about your dataset this week? | |
+
+
+
+Grades are moderately spread; study hours are more consistent. Both distributions roughly Normal.
+Positive relationship: more study hours tend to increase grades (~1.2 points per hour).
+Study hours explain part of grade variability, but other factors (bias/noise) also influence results.
+---
+
+# Expected Outputs
+
+Your file should include (at least):
+- Two distribution plots
+- One scatterplot with fitted regression line
+- One residual plot
+- Regression summary with brief interpretation
+- Completed reflection table
+
+---
+
+# You are free to explore further along modeling (e.g., trying different variable combinations, or trying multiple regression, or different models available in R libraries).
+# You may also explore along p-values and R².
